@@ -4,7 +4,8 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
-      # Add parameter here   
+      id:
+        type: string
     steps:
       - run:
           name: Destroy environments
@@ -16,7 +17,8 @@ commands:
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      # Add parameter here     
+      id:
+        type: string   
     steps:
       - run:
           name: Revert migrations
@@ -167,7 +169,8 @@ jobs:
     steps:
       - checkout
       # Add ssh keys with fingerprint
-      # attach workspace
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -262,7 +265,7 @@ jobs:
     docker:
       - image: amazon/aws-cli:latest
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Install dependencies
           command: |
