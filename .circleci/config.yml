@@ -26,7 +26,7 @@ commands:
           # Add when this will run
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = 1
+            SUCCESS = $(curl --insecure  https://kvdb.io/Cxn5Xz1r2v7asBahdnnnMh/migration_<< parameters.id >>)
             if(( $SUCCESS==1 )); 
             then
               cd backend
@@ -183,6 +183,7 @@ jobs:
           name: Configure server
           command: |
             cd .circleci/ansible
+            cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml         
       - destroy_environment      
 
@@ -191,17 +192,28 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Run migrations
           command: |
-            # Your code here
-            exit 1
+            cd backend
+            npm install
+            npm run migrations > migrations_log.txt
       - run:
-          name: Send migration results to memstash
+          name: Send migration results to kvdb.io
           command: |
-            # Your code here
-            exit 1
-     # Here's where you will add some code to rollback on failure      
+            cat backend/migrations_dump.txt
+            if grep -q "has been executed successfully." backend/migrations_log.txt
+            then
+              echo "insecure" >> ~/.curlrc
+              curl https://kvdb.io/L5XL443LcuPyCjCffC3fRR/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+            else
+              exit 1
+            fi
+      - destroy_environment
+      - revert_migrations:
+          id: ${CIRCLE_WORKFLOW_ID:0:7}   
 
   deploy-frontend:
     docker:
