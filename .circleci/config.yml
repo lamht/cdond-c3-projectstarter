@@ -132,6 +132,10 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install dependencies
+          command: |
+            yum install -y tar gzip
+      - run:
           name: Ensure back-end infrastructure exists
           command: |
             aws cloudformation deploy \
@@ -169,13 +173,13 @@ jobs:
       # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints:
-            - "f0:67:89:a6:e3:c5:ee:d2:e9:0a:cc:cf:d8:8a:c6:33"
-      - attach_workspace:
-          at: ~/
+            - "f0:67:89:a6:e3:c5:ee:d2:e9:0a:cc:cf:d8:8a:c6:33"      
       - run:
           name: Install dependencies
           command: |
-            exit 0
+            yum install -y tar gzip
+      - attach_workspace:
+          at: ~/
       - run:
           name: Configure server
           command: |
@@ -220,7 +224,9 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            exit 0
+            yum install -y tar gzip
+      - attach_workspace:
+          at: ~/
       - run:
           name: Get backend url
           command: |
@@ -248,13 +254,13 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints:
-            - "f0:67:89:a6:e3:c5:ee:d2:e9:0a:cc:cf:d8:8a:c6:33"
-      - attach_workspace:
-          at: ~/
+            - "f0:67:89:a6:e3:c5:ee:d2:e9:0a:cc:cf:d8:8a:c6:33"      
       - run:
           name: Install dependencies
           command: |
-            # your code here
+            yum install -y tar gzip
+      - attach_workspace:
+          at: ~/
       - run:
           name: Deploy backend
           command: |
@@ -269,13 +275,13 @@ jobs:
     docker:
       - image: amazon/aws-cli:latest 
     steps:
-      - checkout
-      - attach_workspace:
-          at: ~/
+      - checkout      
       - run:
           name: Install dependencies
           command: |
-            # your code here
+            yum install -y tar gzip
+      - attach_workspace:
+          at: ~/
       - run:
           name: Get backend url
           command: |
