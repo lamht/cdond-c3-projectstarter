@@ -155,8 +155,9 @@ jobs:
           command: |
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text >> .circleci/ansible/inventory.txt
-            exit 1
+            --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --output text >> ~/.circleci/ansible/inventory.txt
+            cat ~/.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -174,13 +175,12 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            # Your code here
-            exit 1
+            exit 0
       - run:
           name: Configure server
           command: |
-            ansible-playbook -i inventory.txt main.yml --private-key=~/udacity-ansible.pem
-            exit 1
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt configure-server.yml            
       # Here's where you will add some code to rollback on failure      
 
   run-migrations:
