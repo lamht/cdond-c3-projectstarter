@@ -11,8 +11,9 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            # Your code here
-            exit 1
+            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+            aws cloudformation delete-stack --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
+            aws cloudformation delete-stack --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -28,10 +29,9 @@ commands:
             SUCCESS = 1
             if(( $SUCCESS==1 )); 
             then
-            #  cd ~/project/backend
-            #  npm install
-            #  Add revert code here. You can find this in the Getting Started section.
-              exit 1
+              cd backend
+              npm install
+              npm run migrations:revert
             fi
             
 jobs:
@@ -153,17 +153,16 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            cat ~/.circleci/ansible/inventory.txt
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --output text >> ~/.circleci/ansible/inventory.txt
-            cat ~/.circleci/ansible/inventory.txt
+            --output text >> ~/project/.circleci/ansible/inventory.txt
+            cat ~/project/.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
-            - .circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure      
+            - project/.circleci/ansible/inventory.txt
+      - destroy_environment      
 
   configure-infrastructure:
     docker:
@@ -171,6 +170,9 @@ jobs:
     steps:
       - checkout
       # Add ssh keys with fingerprint
+      - add_ssh_keys:
+          fingerprints:
+            - "f0:67:89:a6:e3:c5:ee:d2:e9:0a:cc:cf:d8:8a:c6:33"
       - attach_workspace:
           at: ~/
       - run:
@@ -181,8 +183,8 @@ jobs:
           name: Configure server
           command: |
             cd .circleci/ansible
-            ansible-playbook -i inventory.txt configure-server.yml            
-      # Here's where you will add some code to rollback on failure      
+            ansible-playbook -i inventory.txt configure-server.yml         
+      - destroy_environment      
 
   run-migrations:
     docker:
