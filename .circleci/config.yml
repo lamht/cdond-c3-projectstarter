@@ -162,7 +162,7 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      - destroy_environment      
+      - destroy-environment      
 
   configure-infrastructure:
     docker:
@@ -185,7 +185,7 @@ jobs:
             cd .circleci/ansible
             cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml         
-      - destroy_environment      
+      - destroy-environment      
 
   run-migrations:
     docker:
@@ -211,8 +211,8 @@ jobs:
             else
               exit 1
             fi
-      - destroy_environment
-      - revert_migrations:
+      - destroy-environment
+      - revert-migrations:
           id: ${CIRCLE_WORKFLOW_ID:0:7}   
 
   deploy-frontend:
@@ -234,7 +234,9 @@ jobs:
           name: Deploy frontend objects
           command: |
             # your code here
-      # Here's where you will add some code to rollback on failure      
+      - destroy-environment
+      - revert-migrations:
+          id: ${CIRCLE_WORKFLOW_ID:0:7}      
                     
   deploy-backend:
     docker:
@@ -251,7 +253,9 @@ jobs:
           name: Deploy backend
           command: |
             # your code here
-      # Here's where you will add some code to rollback on failure  
+      - destroy-environment
+      - revert-migrations:
+          id: ${CIRCLE_WORKFLOW_ID:0:7}  
 
   smoke-test:
     docker:
@@ -274,7 +278,9 @@ jobs:
           name: Frontend smoke test.
           command: |
             # your code here
-      # Here's where you will add some code to rollback on failure  
+      - destroy-environment
+      - revert-migrations:
+          id: ${CIRCLE_WORKFLOW_ID:0:7}  
 
   cloudfront-update:
     docker:
@@ -289,25 +295,34 @@ jobs:
           name: Update cloudfront distribution
           command: |
             # your code here
-      # Here's where you will add some code to rollback on failure  
+      - destroy-environment
+      - revert-migrations:
+          id: ${CIRCLE_WORKFLOW_ID:0:7}  
 
   cleanup:
     docker:
       - image: amazon/aws-cli:latest
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Get old stack workflow id
           command: |
-            # your code here
-            export OldWorkflowID="the id here"
-            export STACKS=[] #put the list of stacks here
+            export OldWorkflowID=$(aws cloudformation list-exports --query "Exports[?Name==\`WorkflowID\`].Value" --no-paginate --output text)
+            echo "OldWorkflowID: ${OldWorkflowID}"
+            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+            echo "Stack names: ${STACKS[@]}"
+            
       - run:
           name: Remove old stacks and files
           command: |
-            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+            if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
             then
-              # your code here
+              echo "Found stacks with: ${OldWorkflowID}"
+              aws s3 rm s3://udapeople-${OldWorkflowID} --recursive
+              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+            else
+              echo "Not found stack with ${OldWorkflowID}"
             fi
             
 
