@@ -270,8 +270,7 @@ jobs:
             sudo apt -y update
             sudo apt install -y tar gzip curl unzip
             sudo apt install -y software-properties-common
-            sudo apt-add-repository --yes --update ppa:ansible/ansible
-            sudo apt install ansible
+            python3 -m pip install --user ansible
       - run:
           name: Install aws-cli
           command: |
