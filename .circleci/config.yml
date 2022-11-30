@@ -178,7 +178,7 @@ jobs:
           name: Install dependencies
           command: |
             yum update
-            yum install http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+            yum install -y http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
             yum install ansible
       - attach_workspace:
           at: ~/
@@ -388,13 +388,13 @@ workflows:
       #     requires: [build-backend]
       # - scan-frontend:
       #     requires: [build-frontend]
-      - deploy-infrastructure:
-          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          filters:
-            branches:
-              only: [master]
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
+      # - deploy-infrastructure:
+      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      #     filters:
+      #       branches:
+      #         only: [master]
+      - configure-infrastructure
+          # requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
       - deploy-frontend:
