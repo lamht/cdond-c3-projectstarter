@@ -217,13 +217,19 @@ jobs:
 
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli:latest
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - run:
           name: Install dependencies
           command: |
-            yum install -y tar gzip
+            sudo apt install -y tar gzip curl unzip
+      - run:
+          name: Install aws-cli
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
       - attach_workspace:
           at: ~/
       - run:
@@ -247,8 +253,7 @@ jobs:
           id: ${CIRCLE_WORKFLOW_ID:0:7}      
                     
   deploy-backend:
-    docker:
-      - image: ansible/ansible:ubuntu1404
+    docker: *ansible-image
     steps:
       - checkout
       - add_ssh_keys:
@@ -257,7 +262,16 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apt install -y tar gzip
+            apk update
+            apk add --update ansible
+            apk add --no-cache tar npm gzip curl gcompat
+            apk add --no-cache python3 py3-pip
+            pip3 install --upgrade pip
+            pip3 install awscli
+            rm -rf /var/cache/apk/*
+            echo "Test aws cli version"
+            aws --version
+            which aws
       - attach_workspace:
           at: ~/
       - run:
