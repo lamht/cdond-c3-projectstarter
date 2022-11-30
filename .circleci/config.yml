@@ -268,8 +268,10 @@ jobs:
           name: Install dependencies
           command: |
             yum update
-            yum install epel-release
-            yum install ansible
+            yum -y install http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+            yum -y install ansible
+            yum install -y tar gzip unzip
+            yum -y install nodejs
 
       - attach_workspace:
           at: ~/
