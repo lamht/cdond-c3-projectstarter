@@ -166,7 +166,8 @@ jobs:
       - destroy-environment      
 
   configure-infrastructure:
-    docker: *ansible-image
+    docker:
+      - image: amazon/aws-cli:latest
     steps:
       - checkout
       # Add ssh keys with fingerprint
@@ -176,7 +177,9 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible
+            yum update
+            yum install epel-release
+            yum install ansible
       - attach_workspace:
           at: ~/
       - run:
@@ -253,7 +256,8 @@ jobs:
           id: ${CIRCLE_WORKFLOW_ID:0:7}      
                     
   deploy-backend:
-    docker: *ansible-image
+    docker:
+      - image: amazon/aws-cli:latest
     steps:
       - checkout
       - add_ssh_keys:
@@ -262,16 +266,9 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk update
-            apk add --update ansible
-            apk add --no-cache tar npm gzip curl gcompat
-            apk add --no-cache python3 py3-pip
-            pip3 install --upgrade pip
-            pip3 install awscli
-            rm -rf /var/cache/apk/*
-            echo "Test aws cli version"
-            aws --version
-            which aws
+            yum update
+            yum install epel-release
+            yum install ansible
       - attach_workspace:
           at: ~/
       - run:
