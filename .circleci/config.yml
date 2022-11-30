@@ -166,8 +166,7 @@ jobs:
       - destroy-environment      
 
   configure-infrastructure:
-    docker:
-      - image: ansible/ansible:ubuntu1404
+    docker: *ansible-image
     steps:
       - checkout
       # Add ssh keys with fingerprint
@@ -177,7 +176,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apt install -y tar gzip
+            apk add --update ansible
       - attach_workspace:
           at: ~/
       - run:
