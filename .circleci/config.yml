@@ -216,7 +216,8 @@ jobs:
             # echo 'has been executed successfully.' > migrations_log.txt
       - run:
           name: Send migration results to kvdb.io
-          command: |            
+          command: |      
+            cat migrations_log.txt
             if grep -q "has been executed successfully." backend/migrations_log.txt
             then
               echo "insecure" >> ~/.curlrc
@@ -336,7 +337,7 @@ jobs:
             then
                 exit 0
             else
-                exit 0
+                exit 1
             fi
       - run:
           name: Frontend smoke test.
@@ -402,32 +403,32 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
-      - deploy-infrastructure:
-          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          filters:
-            branches:
-              only: [master]
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
-      - deploy-frontend:
-          requires: [run-migrations]
-      - deploy-backend:
-          requires: [run-migrations]
-      - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
-      - cloudfront-update:
-          requires: [smoke-test]
-      - cleanup:
-          requires: [cloudfront-update]
+      # - build-frontend
+      # - build-backend
+      # - test-frontend:
+      #     requires: [build-frontend]
+      # - test-backend:
+      #     requires: [build-backend]
+      # - scan-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
+      # - deploy-infrastructure:
+      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      #     filters:
+      #       branches:
+      #         only: [master]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      - run-migrations
+          # requires: [configure-infrastructure]
+      # - deploy-frontend:
+      #     requires: [run-migrations]
+      # - deploy-backend:
+      #     requires: [run-migrations]
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
+      # - cloudfront-update:
+      #     requires: [smoke-test]
+      # - cleanup:
+      #     requires: [cloudfront-update]
