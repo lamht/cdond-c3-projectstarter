@@ -207,8 +207,7 @@ jobs:
             echo 'has been executed successfully.' > migrations_log.txt
       - run:
           name: Send migration results to kvdb.io
-          command: |
-            cat backend/migrations_dump.txt
+          command: |            
             if grep -q "has been executed successfully." backend/migrations_log.txt
             then
               echo "insecure" >> ~/.curlrc
