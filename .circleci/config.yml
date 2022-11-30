@@ -178,7 +178,7 @@ jobs:
           name: Install dependencies
           command: |
             yum update
-            yum install -y http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+            yum -y install http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
             yum install ansible
       - attach_workspace:
           at: ~/
