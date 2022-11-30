@@ -283,12 +283,18 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Deploy backend
+          name: Build backend
           command: |
+            sed 's/local/production/g' ~/project/backend/.env
             cd backend
-            npm i
+            npm install
+            echo "--- Backend variables ---"
+            cat ~/project/backend/.env
             npm run build
             cd ..
+      - run:
+          name: Deploy backend
+          command: |
             # Zip the directory
             tar -C backend -czvf artifact.tar.gz .
             cd .circleci/ansible
@@ -334,7 +340,7 @@ jobs:
             then
               exit 0
             else
-              exit 0
+              exit 1
             fi
       - destroy-environment
       - revert-migrations:
