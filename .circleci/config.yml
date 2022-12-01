@@ -30,6 +30,7 @@ commands:
               npm install
               npm run migrations:revert
             fi
+            exit 0
 
   create-backend-env:
     description: Create backend .env file
@@ -335,7 +336,7 @@ jobs:
             echo $API_URL
             if [ "$(curl -sL -w '%{http_code}' $API_URL/api/status -o /dev/null)" = "200" ];
             then
-                exit 1
+                exit 0
             else
                 exit 1
             fi
